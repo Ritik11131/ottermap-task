@@ -24,6 +24,7 @@ const Home: React.FC = () => {
   const mapRef = useRef<HTMLDivElement>(null);
   const [drawType, setDrawType] = useState<string>('Point');
 
+  /** Initializes the map */
   useEffect(() => {
     if (mapRef.current) {
       const map = new Map({
@@ -46,30 +47,47 @@ const Home: React.FC = () => {
       });
       map.addLayer(vectorLayer);
 
-      const handleDrawEnd = (event: any) => {
-        const geometry = event.feature.getGeometry();
-        if (geometry) {
-          let measurement;
-          if (geometry instanceof Polygon) {
-            measurement = getArea(geometry);
-            console.log('Area:', measurement);
-          } else if (geometry instanceof LineString) {
-            measurement = getLength(geometry);
-            console.log('Length:', measurement);
-          } else if (geometry instanceof Circle) {
-            const radius = geometry.getRadius();
-            measurement = Math.PI * radius ** 2;
-            console.log('Area:', measurement);
-          } else {
-            // console.error('Unsupported geometry type');
-            return;
-          }
-        } else {
-          console.error('Geometry is undefined');
-          return;
-        }
-      };
+            /**
+       * Dynaically calculates the measurement based on the geometry type
+       *
+       * @param {any} event - description of parameter
+       * @return {void} description of return value
+       */
+            const handleDrawEnd = (event: any) => {
+              const geometry = event.feature.getGeometry();
+              if (geometry) {
+                let measurement;
+                if (geometry instanceof Polygon) {
+                  measurement = getArea(geometry);
+                  console.log('Area:', measurement);
+                  alert('Area: ' + measurement.toFixed(2) + ' m²');
+                } else if (geometry instanceof LineString) {
+                  measurement = getLength(geometry);
+                  console.log('Length:', measurement);
+                  alert('Length: ' + measurement.toFixed(2) + ' meters');
+                } else if (geometry instanceof Circle) {
+                  const radius = geometry.getRadius();
+                  measurement = Math.PI * radius ** 2; // Area in square meters
+                  console.log('Area:', measurement);
+                  alert('Area: ' + measurement.toFixed(2) + ' m²');
+                } else {
+                  // console.error('Unsupported geometry type');
+                  return;
+                }
+              } else {
+                console.error('Geometry is undefined');
+                return;
+              }
+            };
+            
 
+            /**
+       * A function that creates a draw interaction based on the type provided.
+       *
+       * @param {string} type - The type of draw interaction to create
+       * @param {Style} [markerStyle] - An optional custom marker style to override default style
+       * @return {Draw} A new Draw interaction based on the type and style
+       */
       const createDrawInteraction = (type: string, markerStyle?: Style) => {
         let olType: any;
         let style;
@@ -122,7 +140,6 @@ const Home: React.FC = () => {
         }
     
         if (markerStyle && type === 'Point') {
-            // Override default style if a custom marker style is provided
             style = markerStyle;
         }
     
@@ -133,7 +150,7 @@ const Home: React.FC = () => {
         });
     };
     
-    // Usage
+    
     const markerStyle = new Style({
         image: new Icon({
             src: '/map-marker.png',
@@ -219,7 +236,7 @@ const Home: React.FC = () => {
       // Get user's location and add a marker
       navigator.geolocation.getCurrentPosition((position) => {
         const { latitude, longitude } = position.coords;
-        addMarker([longitude, latitude], 10);
+        addMarker([longitude, latitude], 15);
       });
 
       return () => {
@@ -229,13 +246,18 @@ const Home: React.FC = () => {
   }, [drawType]);
 
 
+    /**
+   * Changes the state of Draw Type.
+   *
+   * @param {string} type - description of parameter
+   * @return {void} description of return value
+   */
   const handleDrawTypeChange = (type: string) => {
     setDrawType(type);
   };
 
   return <>
     <div ref={mapRef} style={{ width: '100%', height: '100vh' }} />;
-
 
     <div className="fixed z-50 w-full h-16 max-w-sm -translate-x-1/2 bg-white border border-gray-200 rounded-full bottom-4 left-1/2 dark:bg-gray-700 dark:border-gray-600">
       <div className="grid h-full max-w-lg grid-cols-4 mx-auto">
